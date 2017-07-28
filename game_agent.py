@@ -2,8 +2,6 @@
 test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
-import random
-
 
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
@@ -190,6 +188,9 @@ class MinimaxPlayer(IsolationPlayer):
         # Return the best move from the last completed search iteration
         return best_move
 
+
+
+
     def minimax(self, game, depth):
         """Implement depth-limited minimax search algorithm as described in
         the lectures.
@@ -233,11 +234,54 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
+
+
+        def _min_value(game, dep):
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+
+            if dep == depth:
+                return self.score(game, self)
+
+            legal_moves = game.get_legal_moves()
+            if len(legal_moves) == 0:
+                return self.score(game, self)
+
+            score = float("inf")
+            for move in game.get_legal_moves():
+                score = min(score, _max_value(game.forecast_move(move), dep+1))
+            return score
+
+        def _max_value(game, dep):
+            if self.time_left() < self.TIMER_THRESHOLD:
+                raise SearchTimeout()
+
+            if dep == depth:
+                return self.score(game, self)
+
+            legal_moves = game.get_legal_moves()
+            if len(legal_moves) == 0:
+                return self.score(game, self)
+
+            score = float("-inf")
+            for move in game.get_legal_moves():
+                score = max(score, _min_value(game.forecast_move(move), dep+1))
+            return score
+
+
         legal_moves = game.get_legal_moves()
-        if not legal_moves:
-            return (-1, -1)
-        _, move = max([(self.score(game.forecast_move(m), self), m) for m in legal_moves])
-        return move
+        best_move = (-1,-1)
+        best_score = float("-inf")
+        
+        for move in legal_moves:
+            score = _min_value(game.forecast_move(move), 1)
+            if score >= best_score:
+                best_score = score
+                best_move = move
+        
+        return best_move
+
+
 
 
 class AlphaBetaPlayer(IsolationPlayer):
