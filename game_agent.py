@@ -340,11 +340,17 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        legal_moves = game.get_legal_moves()
-        if not legal_moves:
-            return (-1, -1)
-        _, move = max([(self.score(game.forecast_move(m), self), m) for m in legal_moves])
-        return move
+        curr_depth = 1
+        best_move = (1,1)
+
+        try:
+            while True:
+                best_move = self.alphabeta(game, curr_depth)
+                curr_depth = curr_depth + 1
+
+        except SearchTimeout:
+            return best_move   # Handle any actions required after timeout as needed
+        
 
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
@@ -400,7 +406,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()
 
-            if dep == depth:
+            if dep == depth:  # if we reach desired depth then return
                 return self.score(game, self)
 
             legal_moves = game.get_legal_moves()
@@ -420,7 +426,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()
 
-            if dep == depth:
+            if dep == depth:  # if we reach desired depth then return
                 return self.score(game, self)
 
             legal_moves = game.get_legal_moves()
