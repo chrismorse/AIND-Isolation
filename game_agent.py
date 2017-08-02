@@ -40,7 +40,18 @@ def custom_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    return float(len(game.get_legal_moves(player)))
+    num_player_moves = len(game.get_legal_moves(player))
+    num_other_player_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    if num_player_moves == 0:
+        return float("-inf")
+
+    if num_other_player_moves == 0:
+        return float("inf")
+
+    return float(num_player_moves / num_other_player_moves)
+
+
 
 
 def custom_score_2(game, player):
@@ -67,25 +78,16 @@ def custom_score_2(game, player):
     """
     # TODO: finish this function!
     
-    # idea:  #my_moves - #opponents_moves
+    if game.move_count < 5:
+        w, h = game.width / 2., game.height / 2.
+        y, x = game.get_player_location(player)
+        return(float((h - y)**2 + (w - x)**2))
 
+    else:
+        own_moves = len(game.get_legal_moves(player))
+        opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
-    if game.is_loser(player):
-        return float("-inf")
-
-    if game.is_winner(player):
-        return float("inf")
-
-
-    '''
-    print("my_moves", game.get_legal_moves(player))
-    print("other_player_moves", game.get_legal_moves(game._active_player))
-    print("*"*40)
-    '''
-    num_player_moves = len(game.get_legal_moves(player))
-    num_other_player_moves = len(game.get_legal_moves(game._active_player))
-
-    return float((2 * num_player_moves) - num_other_player_moves)
+        return float(own_moves - opp_moves)
 
 
 
@@ -121,9 +123,10 @@ def custom_score_3(game, player):
         return float("inf")
 
     num_player_moves = len(game.get_legal_moves(player))
-    num_other_player_moves = len(game.get_legal_moves(game._active_player))
+    num_other_player_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
-    return float(num_player_moves - (3 * num_other_player_moves))
+    return float(num_player_moves - (1.5 * num_other_player_moves))
+
 
 
 class IsolationPlayer:
@@ -201,10 +204,12 @@ class MinimaxPlayer(IsolationPlayer):
             return self.minimax(game, self.search_depth)
 
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            if best_move == (-1,-1):
+                legal_moves = game.get_legal_moves()
+                if len(legal_moves) > 0:
+                    best_move = legal_moves[0]
 
-        # Return the best move from the last completed search iteration
-        return best_move
+            return best_move
 
 
 
@@ -341,7 +346,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         self.time_left = time_left
 
         curr_depth = 1
-        best_move = (1,1)
+        best_move = (-1,-1)
 
         try:
             while True:
@@ -349,6 +354,12 @@ class AlphaBetaPlayer(IsolationPlayer):
                 curr_depth = curr_depth + 1
 
         except SearchTimeout:
+            if best_move == (-1,-1):
+                #print("timeout! - best_move is ", best_move)
+                legal_moves = game.get_legal_moves()
+                if len(legal_moves) > 0:
+                    best_move = legal_moves[0]
+                    #print("going with first", best_move)
             return best_move   # Handle any actions required after timeout as needed
         
 
@@ -409,15 +420,18 @@ class AlphaBetaPlayer(IsolationPlayer):
             if dep == depth:  # if we reach desired depth then return
                 return self.score(game, self)
 
-            legal_moves = game.get_legal_moves()
-            if len(legal_moves) == 0:
-                return self.score(game, self)
-
             score = float("inf")
+
+            legal_moves = game.get_legal_moves()
+
+            if len(legal_moves) == 0:
+                return score
+
             for move in game.get_legal_moves():
                 score = min(score, _max_value(game.forecast_move(move), dep+1, alpha, beta))
                 if score <= alpha:
                     return score
+
                 beta = min(beta, score)
 
             return score
@@ -429,11 +443,14 @@ class AlphaBetaPlayer(IsolationPlayer):
             if dep == depth:  # if we reach desired depth then return
                 return self.score(game, self)
 
+            score = float("-inf")
+
             legal_moves = game.get_legal_moves()
             if len(legal_moves) == 0:
-                return self.score(game, self)
+                return score
+                
+                #return self.score(game, self)
 
-            score = float("-inf")
             for move in game.get_legal_moves():
                 score = max(score, _min_value(game.forecast_move(move), dep+1, alpha, beta))
                 if score >= beta:
