@@ -34,6 +34,7 @@ def custom_score(game, player):
     """
     # TODO: finish this function!
     
+    # heuristic 1
     if game.is_loser(player):
         return float("-inf")
 
@@ -43,14 +44,7 @@ def custom_score(game, player):
     num_player_moves = len(game.get_legal_moves(player))
     num_other_player_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
-    if num_player_moves == 0:
-        return float("-inf")
-
-    if num_other_player_moves == 0:
-        return float("inf")
-
-    return float(num_player_moves / num_other_player_moves)
-
+    return float(num_player_moves - (1.5 * num_other_player_moves))
 
 
 
@@ -78,16 +72,18 @@ def custom_score_2(game, player):
     """
     # TODO: finish this function!
     
-    if game.move_count < 5:
-        w, h = game.width / 2., game.height / 2.
-        y, x = game.get_player_location(player)
-        return(float((h - y)**2 + (w - x)**2))
 
-    else:
-        own_moves = len(game.get_legal_moves(player))
-        opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    # heuristic 2
+    if game.is_loser(player):
+        return float("-inf")
 
-        return float(own_moves - opp_moves)
+    if game.is_winner(player):
+        return float("inf")
+
+    num_player_moves = len(game.get_legal_moves(player))
+    num_other_player_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    return float((1.5 * num_player_moves) - num_other_player_moves)
 
 
 
@@ -116,6 +112,9 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
+
+
+    # heuristic #5
     if game.is_loser(player):
         return float("-inf")
 
@@ -125,7 +124,13 @@ def custom_score_3(game, player):
     num_player_moves = len(game.get_legal_moves(player))
     num_other_player_moves = len(game.get_legal_moves(game.get_opponent(player)))
 
-    return float(num_player_moves - (1.5 * num_other_player_moves))
+    if num_player_moves == 0:
+        return float("-inf")
+
+    if num_other_player_moves == 0:
+        return float("inf")
+
+    return float( - num_other_player_moves / num_player_moves)
 
 
 
